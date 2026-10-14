@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order History | Foodie</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>🍔 Foodie - Order History</h1>
+        <a href="index.html">← Back to Menu</a>
+    </header>
+
+    <main>
+        <h2>Your Orders</h2>
+        <div id="orders">Loading orders...</div>
+    </main>
+
+    <script>
+        async function loadOrders() {
+            const container = document.getElementById("orders");
+
+            try {
+                const response = await fetch("http://localhost:8080/api/orders");
+                if (!response.ok) throw new Error("Failed to load orders");
+
+                const orders = await response.json();
+
+                if (orders.length === 0) {
+                    container.textContent = "No orders yet.";
+                    return;
+                }
+
+                container.innerHTML = orders.map(order => `
+                    <div class="food-card">
+                        <h3>Order #${order.id}</h3>
+                        <p><strong>Items:</strong> ${order.items}</p>
+                        <p><strong>Total:</strong> ₹${Number(order.total).toFixed(2)}</p>
+                    </div>
+                `).join("");
+            } catch (error) {
+                container.textContent =
+                    "Could not load orders. Make sure Spring Boot is running.";
+            }
+        }
+
+        loadOrders();
+    </script>
+</body>
+</html>
+

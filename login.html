@@ -1,0 +1,206 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foodie | Login & Sign Up</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body class="auth-page">
+
+    <header class="auth-header">
+        <h1>🍔 Foodie</h1>
+        <a href="/">← Back to Menu</a>
+    </header>
+
+    <main class="auth-layout">
+
+        <section class="auth-promo">
+            <div>
+                <h2>Good food.<br>Good mood.</h2>
+                <p>
+                    Your favourite meals, just a few clicks away.
+                    Sign in to continue your delicious journey.
+                </p>
+            </div>
+
+            <div class="auth-food">🍔 🍕 🍟</div>
+
+            <p>Fresh flavours. Easy ordering. Happy moments.</p>
+        </section>
+
+        <section class="auth-form-panel">
+
+            <div class="auth-tabs">
+                <button type="button" id="login-tab" class="active">
+                    Login
+                </button>
+                <button type="button" id="signup-tab">
+                    Sign Up
+                </button>
+            </div>
+
+            <h2 id="form-title">Welcome back!</h2>
+
+            <p class="auth-subtitle" id="form-subtitle">
+                Enter your details to access your account.
+            </p>
+
+            <form id="auth-form">
+
+                <div id="name-field" style="display:none;">
+                    <label for="name">Full Name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        placeholder="Enter your full name"
+                        autocomplete="name"
+                    >
+                </div>
+
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="you@example.com"
+                    autocomplete="email"
+                    required
+                >
+
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="At least 6 characters"
+                    minlength="6"
+                    autocomplete="current-password"
+                    required
+                >
+
+                <button type="submit" class="auth-submit" id="submit-btn">
+                    Login to Foodie
+                </button>
+
+            </form>
+
+            <p id="auth-message" class="auth-message" role="status"></p>
+
+            <p class="auth-switch">
+                <span id="toggle-label">Don't have an account?</span>
+                <a href="#" id="toggle-auth">Create one</a>
+            </p>
+
+        </section>
+    </main>
+
+    <script>
+        let isSignup = false;
+
+        const form = document.getElementById("auth-form");
+        const nameField = document.getElementById("name-field");
+        const nameInput = document.getElementById("name");
+        const title = document.getElementById("form-title");
+        const subtitle = document.getElementById("form-subtitle");
+        const submitBtn = document.getElementById("submit-btn");
+        const toggleLabel = document.getElementById("toggle-label");
+        const toggleAuth = document.getElementById("toggle-auth");
+        const message = document.getElementById("auth-message");
+        const loginTab = document.getElementById("login-tab");
+        const signupTab = document.getElementById("signup-tab");
+        const passwordInput = document.getElementById("password");
+
+        function updateAuthMode(signup) {
+            isSignup = signup;
+
+            title.textContent = isSignup
+                ? "Create your account"
+                : "Welcome back!";
+
+            subtitle.textContent = isSignup
+                ? "Join Foodie and order your favourite meals."
+                : "Enter your details to access your account.";
+
+            submitBtn.textContent = isSignup
+                ? "Create Account"
+                : "Login to Foodie";
+
+            nameField.style.display = isSignup ? "block" : "none";
+            nameInput.required = isSignup;
+
+            passwordInput.autocomplete = isSignup
+                ? "new-password"
+                : "current-password";
+
+            loginTab.classList.toggle("active", !isSignup);
+            signupTab.classList.toggle("active", isSignup);
+
+            toggleLabel.textContent = isSignup
+                ? "Already have an account?"
+                : "Don't have an account?";
+
+            toggleAuth.textContent = isSignup
+                ? "Login"
+                : "Create one";
+
+            message.textContent = "";
+        }
+
+        loginTab.addEventListener("click", () => updateAuthMode(false));
+        signupTab.addEventListener("click", () => updateAuthMode(true));
+
+        toggleAuth.addEventListener("click", function (event) {
+            event.preventDefault();
+            updateAuthMode(!isSignup);
+        });
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            message.style.color = "#667085";
+            message.textContent = "Please wait...";
+
+            const payload = {
+                email: document.getElementById("email").value.trim(),
+                password: passwordInput.value
+            };
+
+            if (isSignup) {
+                payload.name = nameInput.value.trim();
+            }
+
+            try {
+                const response = await fetch(
+                    isSignup ? "/api/signup" : "/api/login",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Request failed");
+                }
+
+                sessionStorage.setItem("loggedIn", "true");
+                message.style.color = "#16803d";
+                message.textContent = data.message || "Success!";
+
+                window.location.href = "/";
+
+            } catch (error) {
+                message.style.color = "#b42318";
+                message.textContent =
+                    error.message || "Something went wrong.";
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,68 @@
+
+package com.food.food_ordering_system;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.CrossOrigin;
+
+import java.util.List;
+import java.util.Arrays;
+
+@RestController
+@CrossOrigin(origins = "*")
+public class foodcontroller {
+    
+private final orderrepo orderRepository;
+
+public foodcontroller(orderrepo orderRepository) {
+    this.orderRepository = orderRepository;
+}
+    
+@PostMapping("/api/orders")
+public Map<String, Object> placeOrder(
+        @RequestBody Map<String, Object> orderData) {
+
+    String items = String.valueOf(orderData.get("items"));
+    double total = Double.parseDouble(
+        String.valueOf(orderData.get("total"))
+    );
+
+    order savedOrder = orderRepository.save(
+        new order(items, total)
+    );
+
+    return Map.of(
+        "message", "Order placed successfully!",
+        "orderId", savedOrder.getId(),
+        "order", orderData
+    );
+}
+
+     @GetMapping("/api/orders")
+     public List<order> getAllOrders() {
+        return orderRepository.findAll();
+}
+    @GetMapping("/api/foods")
+    public List<fooditem> getAllFoods() {
+        return Arrays.asList(
+            new fooditem(1, "Pizza", 249.0, "Fast Food", true),
+            new fooditem(2, "Burger", 129.0, "Fast Food", true),
+            new fooditem(3, "Pasta", 179.0, "Italian", true),
+            new fooditem(4, "Sandwich", 99.0, "Snacks", true)
+        );
+    }
+
+    @GetMapping("/api/foods/{id}")
+    public fooditem getFoodById(@PathVariable int id) {
+        List<fooditem> foods = getAllFoods();
+
+        return foods.stream()
+                .filter(food -> food.getId() == id)
+                .findFirst()
+                .orElse(null);
+    }
+}
